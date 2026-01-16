@@ -7,11 +7,44 @@ CREATE SCHEMA IF NOT EXISTS skry_ad_cam;
 CREATE TABLE IF NOT EXISTS skry_ad_cam.users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
+    password_hash TEXT, -- Nullable for Google OAuth users
+    google_id TEXT UNIQUE,
     full_name TEXT,
-    module_permissions JSONB DEFAULT '["ad-cam"]'::jsonb, -- Array of module IDs the user can access
+    shard_balance INTEGER DEFAULT 125, -- 5 free scans (25 each)
+    module_permissions JSONB DEFAULT '["ad-cam"]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Products/Bundles table
+CREATE TABLE IF NOT EXISTS skry_ad_cam.products (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stripe_price_id TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    shards_count INTEGER NOT NULL,
+    price_usd DECIMAL(10, 2) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Shard Transactions for audit logging
+CREATE TABLE IF NOT EXISTS skry_ad_cam.shard_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES skry_ad_cam.users(id),
+    amount INTEGER NOT NULL, -- positive for credit, negative for deduction
+    type TEXT NOT NULL, -- 'PURCHASE', 'USAGE', 'INITIAL_ALLOCATION'
+    description TEXT,
+    stripe_session_id TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User Purchases to prevent duplicate bundle buys if restricted
+CREATE TABLE IF NOT EXISTS skry_ad_cam.user_purchases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES skry_ad_cam.users(id),
+    product_id UUID REFERENCES skry_ad_cam.products(id),
+    stripe_session_id TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Ad Scans table with metadata support
@@ -50,3 +83,8 @@ INSERT INTO skry_ad_cam.metadata_tags (category, value, label) VALUES
 ('visual_style', 'ugc', 'UGC (User Generated)'),
 ('visual_style', 'professional', 'Professional Production')
 ON CONFLICT (category, value) DO NOTHING;
+
+-- Seed initial products
+INSERT INTO skry_ad_cam.products (stripe_price_id, name, shards_count, price_usd) VALUES
+('price_1Sq3oLLDdp4BWCnX2aTO3Hth', 'Elite Shard Cache', 500, 4.99)
+ON CONFLICT (stripe_price_id) DO NOTHING;

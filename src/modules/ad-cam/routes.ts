@@ -3,10 +3,12 @@ import { authenticate, authorizeModule } from '../../core/middleware/auth';
 import { query } from '../../core/db';
 import OpenAI from 'openai';
 import { HostingerStorageService } from '../../core/services/storage/HostingerStorageService';
+import { ShardService } from '../../core/services/shard/ShardService';
 
 const router = express.Router();
 const storage = new HostingerStorageService();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const shardService = new ShardService();
 
 // Apply module authorization to all routes in this module
 router.use(authorizeModule('ad-cam'));
@@ -52,12 +54,23 @@ router.use(authorizeModule('ad-cam'));
 router.post('/analyze', authenticate, async (req: Request, res: Response) => {
     try {
         const { image, platform, format, hook_type, visual_style } = req.body;
+        const userId = (req as any).user.id;
 
         if (!image) {
             return res.status(400).json({ error: 'Image data is required' });
         }
 
-        // 1. Upload to Storage (Hostinger)
+        // 1. Deduct Shards (25 shards per scan)
+        try {
+            await shardService.deductShards(userId, 25, 'Ad Cam Scan Analysis');
+        } catch (error: any) {
+            if (error.message === 'INSUFFICIENT_FUNDS') {
+                return res.status(403).json({ error: 'Insufficient shards. Please purchase more.', code: 'INSUFFICIENT_FUNDS' });
+            }
+            throw error;
+        }
+
+        // 2. Upload to Storage (Hostinger)
         const buffer = Buffer.from(image.replace(/^data:image\/\w+;base64,/, ""), 'base64');
         const uploadResult = await storage.uploadFile(buffer, `ad-capture-${Date.now()}.jpg`, 'image/jpeg');
 
@@ -99,9 +112,12 @@ router.post('/analyze', authenticate, async (req: Request, res: Response) => {
             ]
         );
 
+        const newBalance = await shardService.getBalance(userId);
+
         res.json({
             message: 'Analysis complete',
-            data: result.rows[0]
+            data: result.rows[0],
+            newBalance
         });
 
     } catch (error: any) {
