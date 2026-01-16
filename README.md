@@ -8,10 +8,20 @@ This is the high-performance Express/TypeScript backend for the Skry.agency Ad C
 - **Object Storage**: S3-compatible storage integration (Hostinger/AWS).
 - **PostgreSQL**: Dedicated schema-based database architecture.
 
-## Deployment on Hostinger
-This backend is optimized for Hostinger's Node.js environment.
+## Deployment
+This backend can be deployed via standard Node.js hosting or Docker.
 
-### Steps to Deploy:
+### Option 1: Docker (Recommended for VPS)
+This repository includes a `Dockerfile` and `docker-compose.yml` for easy deployment on Hostinger's Docker Manager or any VPS.
+
+1. **Upload files**: Push this repository to GitHub.
+2. **Hostinger Docker Manager**:
+   - Choose "Create Container".
+   - Link this GitHub repository.
+   - Set the environment variables in the Hostinger panel.
+   - The container will automatically build and start on port 4000.
+
+### Option 2: Standard Node.js Hosting
 1. **GitHub Integration**: Connect your Hostinger Node.js app to this repository.
 2. **Build Settings**:
    - **Build Command**: `npm install && npm run build`

@@ -1,0 +1,17 @@
+services:
+  skry-backend:
+    build: .
+    container_name: skry-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - SKRY_DATABASE_URL=${SKRY_DATABASE_URL}
+      - SKRY_JWT_SECRET=${SKRY_JWT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HOSTINGER_STORAGE_ENDPOINT=${HOSTINGER_STORAGE_ENDPOINT}
+      - HOSTINGER_STORAGE_BUCKET=${HOSTINGER_STORAGE_BUCKET}
+      - HOSTINGER_STORAGE_ACCESS_KEY=${HOSTINGER_STORAGE_ACCESS_KEY}
+      - HOSTINGER_STORAGE_SECRET_KEY=${HOSTINGER_STORAGE_SECRET_KEY}
+    restart: always
