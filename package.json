@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "build": "tsc --project tsconfig.json",
+    "build": "npx esbuild src/index.ts --bundle --platform=node --target=node20 --outdir=dist --external:pg-native --external:bcryptjs --external:express --external:cors --external:helmet --external:morgan --external:dotenv --external:openai --external:swagger-jsdoc --external:swagger-ui-express",
     "dev": "nodemon src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -36,7 +36,8 @@
     "pg": "^8.17.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "esbuild": "^0.25.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.11",
