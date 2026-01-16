@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS skry_ad_cam.users (
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     full_name TEXT,
+    module_permissions JSONB DEFAULT '["ad-cam"]'::jsonb, -- Array of module IDs the user can access
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { query } from '../db';
-import { AuthFactory } from '../services/auth/factory';
-import { JWTAuthService } from '../services/auth/JWTAuthService';
+import { query } from '../core/db';
+import { AuthFactory } from '../core/services/auth/factory';
+import { JWTAuthService } from '../core/services/auth/JWTAuthService';
 
 const router = express.Router();
 const authService = AuthFactory.getAuthService() as JWTAuthService;
@@ -53,7 +53,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
         // Create user
         const result = await query(
-            'INSERT INTO skry_ad_cam.users (email, password_hash, full_name) VALUES ($1, $2, $3) RETURNING id, email, full_name',
+            'INSERT INTO skry_ad_cam.users (email, password_hash, full_name) VALUES ($1, $2, $3) RETURNING id, email, full_name, module_permissions',
             [email, passwordHash, fullName]
         );
 
@@ -61,7 +61,8 @@ router.post('/register', async (req: Request, res: Response) => {
         const token = await authService.generateToken({
             id: user.id,
             email: user.email,
-            fullName: user.full_name
+            fullName: user.full_name,
+            module_permissions: user.module_permissions
         });
 
         res.status(201).json({
@@ -69,7 +70,8 @@ router.post('/register', async (req: Request, res: Response) => {
             user: {
                 id: user.id,
                 email: user.email,
-                fullName: user.full_name
+                fullName: user.full_name,
+                module_permissions: user.module_permissions
             },
             token
         });
@@ -132,7 +134,8 @@ router.post('/login', async (req: Request, res: Response) => {
         const token = await authService.generateToken({
             id: user.id,
             email: user.email,
-            fullName: user.full_name
+            fullName: user.full_name,
+            module_permissions: user.module_permissions
         });
 
         res.json({
@@ -140,7 +143,8 @@ router.post('/login', async (req: Request, res: Response) => {
             user: {
                 id: user.id,
                 email: user.email,
-                fullName: user.full_name
+                fullName: user.full_name,
+                module_permissions: user.module_permissions
             },
             token
         });
@@ -162,7 +166,7 @@ router.post('/login', async (req: Request, res: Response) => {
  *       200:
  *         description: User info retrieved
  */
-import { authenticate } from '../middleware/auth';
+import { authenticate } from '../core/middleware/auth';
 router.get('/me', authenticate, async (req: Request, res: Response) => {
     res.json({ user: (req as any).user });
 });

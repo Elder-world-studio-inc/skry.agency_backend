@@ -24,3 +24,23 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         return res.status(401).json({ error: 'Unauthorized: Authentication failed' });
     }
 };
+
+export const authorizeModule = (moduleId: string) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        const user = (req as any).user;
+        
+        if (!user) {
+            return res.status(401).json({ error: 'Unauthorized: No user session' });
+        }
+
+        const permissions = user.module_permissions || [];
+        
+        if (!permissions.includes(moduleId) && !permissions.includes('*')) {
+            return res.status(403).json({ 
+                error: `Forbidden: You do not have access to the '${moduleId}' module` 
+            });
+        }
+
+        next();
+    };
+};

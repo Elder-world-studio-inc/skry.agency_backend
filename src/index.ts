@@ -6,8 +6,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Routes
-import adRoutes from './routes/ads';
 import authRoutes from './routes/auth';
+import { loadModules, getModulesMetadata } from './core/modules';
 import { setupSwagger } from './utils/swagger';
 
 // Load environment variables
@@ -18,6 +18,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const apiRouter = express.Router();
 
 // Middleware
 app.use(helmet());
@@ -29,12 +30,21 @@ app.use(express.json({ limit: '50mb' }));
 setupSwagger(app);
 
 // API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/ads', adRoutes);
+apiRouter.use('/auth', authRoutes);
+
+// Load Modules
+loadModules(apiRouter);
+
+// Module Discovery
+apiRouter.get('/modules', (req, res) => {
+    res.json(getModulesMetadata());
+});
+
+app.use('/api', apiRouter);
 
 // Health Check
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', service: 'Skry Ad Cam Backend' });
+    res.json({ status: 'ok', service: 'Skry Hub Backend' });
 });
 
 app.listen(PORT, () => {

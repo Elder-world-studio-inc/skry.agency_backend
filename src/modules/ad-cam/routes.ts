@@ -1,19 +1,22 @@
 import express, { Request, Response } from 'express';
-import { authenticate } from '../middleware/auth';
-import { query } from '../db';
+import { authenticate, authorizeModule } from '../../core/middleware/auth';
+import { query } from '../../core/db';
 import OpenAI from 'openai';
-import { HostingerStorageService } from '../services/storage/HostingerStorageService';
+import { HostingerStorageService } from '../../core/services/storage/HostingerStorageService';
 
 const router = express.Router();
 const storage = new HostingerStorageService();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Apply module authorization to all routes in this module
+router.use(authorizeModule('ad-cam'));
+
 /**
  * @swagger
- * /api/ads/analyze:
+ * /api/m/ad-cam/analyze:
  *   post:
  *     summary: Analyze an ad image and extract metadata
- *     tags: [Ads]
+ *     tags: [Ad Cam]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -102,14 +105,22 @@ router.post('/analyze', authenticate, async (req: Request, res: Response) => {
         });
 
     } catch (error: any) {
-        console.error('[Ads] Analysis Error:', error);
+        console.error('[Ad Cam] Analysis Error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 /**
- * @route GET /api/ads/history
- * @desc Get user's ad capture history
+ * @swagger
+ * /api/m/ad-cam/history:
+ *   get:
+ *     summary: Get user's ad capture history
+ *     tags: [Ad Cam]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of ad scans
  */
 router.get('/history', authenticate, async (req: Request, res: Response) => {
     try {

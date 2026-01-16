@@ -6,9 +6,9 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Skry Ad Cam API Documentation',
+            title: 'Skry Hub API Documentation',
             version: '1.0.0',
-            description: 'Independent API for Skry.agency Module 1: Ad Cam',
+            description: 'Central API Hub for Skry.agency Modules',
             contact: {
                 name: 'Skry Technical Team'
             }
@@ -34,7 +34,7 @@ const options = {
             }
         ]
     },
-    apis: ['./src/routes/*.ts']
+    apis: ['./src/routes/*.ts', './src/modules/**/*.ts']
 };
 
 const specs = swaggerJsdoc(options);
