@@ -11,7 +11,10 @@ import authRoutes from './routes/auth';
 import { setupSwagger } from './utils/swagger';
 
 // Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '../.env.skry') });
+const envPath = path.resolve(__dirname, '../.env.skry');
+dotenv.config({ path: envPath });
+// Also try loading standard .env if .env.skry doesn't exist
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
